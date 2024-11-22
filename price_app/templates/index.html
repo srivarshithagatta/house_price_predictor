@@ -1,161 +1,267 @@
-{% comment %} <!DOCTYPE html>
-<html>
-<head>
-    <title>House Price Prediction</title>
-</head>
-<body>
-    <h1>Predict House Price</h1>
-    <form method="POST">
-        {% csrf_token %}
-        <label for="bedrooms">Bedrooms:</label>
-        <input type="number" step="1" name="bedrooms" id="bedrooms" required><br>
-
-        <label for="bathrooms">Bathrooms:</label>
-        <input type="number" step="0.5" name="bathrooms" id="bathrooms" required><br>
-
-        <label for="sqft_living">Living Area (sqft):</label>
-        <input type="number" step="1" name="sqft_living" id="sqft_living" required><br>
-
-        <label for="sqft_lot">Lot Area (sqft):</label>
-        <input type="number" step="1" name="sqft_lot" id="sqft_lot" required><br>
-
-        <label for="floors">Floors:</label>
-        <input type="number" step="0.1" name="floors" id="floors" required><br>
-
-        <label for="waterfront">Waterfront (0 or 1):</label>
-        <input type="number" step="1" name="waterfront" id="waterfront" required><br>
-
-        <label for="view">View (0 to 4):</label>
-        <input type="number" step="1" name="view" id="view" required><br>
-
-        <label for="condition">Condition (1 to 5):</label>
-        <input type="number" step="1" name="condition" id="condition" required><br>
-
-        <label for="sqft_above">Sqft Above:</label>
-        <input type="number" step="1" name="sqft_above" id="sqft_above" required><br>
-
-        <label for="sqft_basement">Sqft Basement:</label>
-        <input type="number" step="1" name="sqft_basement" id="sqft_basement" required><br>
-
-        <label for="yr_built">Year Built:</label>
-        <input type="number" step="1" name="yr_built" id="yr_built" required><br>
-
-        <label for="yr_renovated">Year Renovated:</label>
-        <input type="number" step="1" name="yr_renovated" id="yr_renovated" required><br>
-
-        <label for="street">Street:</label>
-        <input type="text" name="street" id="street" required><br>
-
-        <label for="city">City:</label>
-        <input type="text" name="city" id="city" required><br>
-
-        <label for="statezip">State ZIP:</label>
-        <input type="text" name="statezip" id="statezip" required><br>
-
-        <label for="country">Country:</label>
-        <input type="text" name="country" id="country" required><br>
-
-        <button type="submit">Predict Price</button>
-    </form>
-</body>
-</html> {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Predict House Price</title>
+    <title>Property Price Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* Light blue */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .form-container {
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            width: 500px;
+            height: 1300px;
+        }
+        h1 {
+            text-align: center;
+            color: #0047ab; /* Dark blue */
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #0047ab;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003580;
+        }
+    </style>
+    <script type="text/javascript">
+        // Function to update city and street options based on the selected state
+        function updateCities(state) {
+            const citySelect = document.getElementById('city');
+            const streetSelect = document.getElementById('street');
+            
+            // Clear previous options
+            citySelect.innerHTML = '';
+            streetSelect.innerHTML = '';
+
+            // Get the cities and streets for the selected state from the data passed by the backend
+            const stateCityMapping = JSON.parse('{{ state_city_mapping|escapejs }}');
+            const stateStreetMapping = JSON.parse('{{ state_street_mapping|escapejs }}');
+            
+            // Add the cities corresponding to the selected state
+            if (state in stateCityMapping) {
+                stateCityMapping[state].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            }
+            
+            // Add the streets corresponding to the selected state
+            if (state in stateStreetMapping) {
+                stateStreetMapping[state].forEach(street => {
+                    const option = document.createElement('option');
+                    option.value = street;
+                    option.textContent = street;
+                    streetSelect.appendChild(option);
+                });
+            }
+        }
+    </script>
 </head>
 <body>
-    <h1>Predict House Price</h1>
-    <form method="POST">
-        {% csrf_token %}
-        
-        <label for="bedrooms">Bedrooms:</label>
-        <select name="bedrooms" id="bedrooms">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-        </select><br><br>
+    <div class="form-container">
+        <h1>Property Price Prediction</h1>
+        <form method="POST" action="{% url 'predict_price' %}">
+            {% csrf_token %}
+            
+            <!-- State selection -->
+            <div class="form-group">
+                <label for="state">State:</label>
+                <select id="state" name="state" onchange="updateCities(this.value)">
+                    <option value="">Select a state</option>
+                    {% for state in unique_states %}
+                        <option value="{{ state }}">{{ state }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <label for="bathrooms">Bathrooms:</label>
-        <select name="bathrooms" id="bathrooms">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-        </select><br><br>
+            <!-- City selection -->
+            <div class="form-group">
+                <label for="city">City:</label>
+                <select id="city" name="city">
+                    <option value="">Select a city</option>
+                    <!-- Cities will be populated based on the selected state -->
+                </select>
+            </div>
 
-        <label for="sqft_living">Living Area (sqft):</label>
-        <input type="number" name="sqft_living" id="sqft_living" required><br><br>
+            <!-- Street selection -->
+            <div class="form-group">
+                <label for="street">Street:</label>
+                <select id="street" name="street">
+                    <option value="">Select a street</option>
+                    <!-- Streets will be populated based on the selected state -->
+                </select>
+            </div>
 
-        <label for="sqft_lot">Lot Area (sqft):</label>
-        <input type="number" name="sqft_lot" id="sqft_lot" required><br><br>
+            <!-- Bedrooms -->
+            <div class="form-group">
+                <label for="bedrooms">Bedrooms:</label>
+                <select id="bedrooms" name="bedrooms">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5+</option>
+                </select>
+            </div>
 
-        <label for="floors">Floors:</label>
-        <select name="floors" id="floors">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-        </select><br><br>
+            <!-- Bathrooms -->
+            <div class="form-group">
+                <label for="bathrooms">Bathrooms:</label>
+                <select id="bathrooms" name="bathrooms">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4+</option>
+                </select>
+            </div>
 
-        <label for="waterfront">Waterfront (0 or 1):</label>
-        <select name="waterfront" id="waterfront">
-            <option value="0">0</option>
-            <option value="1">1</option>
-        </select><br><br>
+            <!-- Sqft Living -->
+            <div class="form-group">
+                <label for="sqft_living">Sqft Living:</label>
+                <select id="sqft_living" name="sqft_living">
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000</option>
+                    <option value="2500">2500</option>
+                    <option value="3000">3000+</option>
+                </select>
+            </div>
 
-        <label for="view">View (0 to 4):</label>
-        <select name="view" id="view">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-        </select><br><br>
+            <!-- Sqft Lot -->
+            <div class="form-group">
+                <label for="sqft_lot">Sqft Lot:</label>
+                <select id="sqft_lot" name="sqft_lot">
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000</option>
+                    <option value="2500">2500</option>
+                    <option value="3000">3000+</option>
+                </select>
+            </div>
 
-        <label for="condition">Condition (1 to 5):</label>
-        <select name="condition" id="condition">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-        </select><br><br>
+            <!-- Floors -->
+            <div class="form-group">
+                <label for="floors">Floors:</label>
+                <select id="floors" name="floors">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3+</option>
+                </select>
+            </div>
 
-        <label for="sqft_above">Sqft Above:</label>
-        <input type="number" name="sqft_above" id="sqft_above" required><br><br>
+            <!-- Sqft Above -->
+            <div class="form-group">
+                <label for="sqft_above">Sqft Above:</label>
+                <select id="sqft_above" name="sqft_above">
+                    <option value="0">0</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="1500">1500</option>
+                    <option value="2000">2000+</option>
+                </select>
+            </div>
 
-        <label for="sqft_basement">Sqft Basement:</label>
-        <input type="number" name="sqft_basement" id="sqft_basement" required><br><br>
+            <!-- Sqft Basement -->
+            <div class="form-group">
+                <label for="sqft_basement">Sqft Basement:</label>
+                <select id="sqft_basement" name="sqft_basement">
+                    <option value="0">0</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="1500">1500</option>
+                </select>
+            </div>
 
-        <label for="yr_built">Year Built:</label>
-        <input type="number" name="yr_built" id="yr_built" required><br><br>
+            <!-- Year Built -->
+            <div class="form-group">
+                <label for="yr_built">Year Built:</label>
+                <select id="yr_built" name="yr_built">
+                    <option value="1900">1900</option>
+                    <option value="1920">1920</option>
+                    <option value="1940">1940</option>
+                    <option value="1960">1960</option>
+                    <option value="1980">1980</option>
+                    <option value="2000">2000+</option>
+                </select>
+            </div>
 
-        <label for="yr_renovated">Year Renovated:</label>
-        <input type="number" name="yr_renovated" id="yr_renovated" required><br><br>
+            <!-- Year Renovated -->
+            <div class="form-group">
+                <label for="yr_renovated">Year Renovated:</label>
+                <select id="yr_renovated" name="yr_renovated">
+                    <option value="0">0</option>
+                    <option value="2000">2000</option>
+                    <option value="2010">2010</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
 
-        <label for="street">Street:</label>
-        <input type="text" name="street" id="street"><br><br>
+            <!-- Categorical features (waterfront, view, condition) -->
+            <div class="form-group">
+                <label for="waterfront">Waterfront:</label>
+                <select id="waterfront" name="waterfront">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
 
-        <label for="city">City:</label>
-        <input type="text" name="city" id="city"><br><br>
+            <div class="form-group">
+                <label for="view">View:</label>
+                <select id="view" name="view">
+                    <option value="0">No View</option>
+                    <option value="1">Good View</option>
+                </select>
+            </div>
 
-        <label for="statezip">State ZIP:</label>
-        <input type="text" name="statezip" id="statezip"><br><br>
+            <div class="form-group">
+                <label for="condition">Condition:</label>
+                <select id="condition" name="condition">
+                    <option value="1">Poor</option>
+                    <option value="2">Fair</option>
+                    <option value="3">Good</option>
+                    <option value="4">Very Good</option>
+                    <option value="5">Excellent</option>
+                </select>
+            </div>
 
-        <label for="country">Country:</label>
-        <input type="text" name="country" id="country"><br><br>
-
-        <button type="submit">Predict Price</button>
-    </form>
-
-    {% if predicted_price %}
-        <h2>Estimated House Price: {{ predicted_price }}</h2>
-    {% endif %}
+            <!-- Submit button -->
+            <button type="submit">Predict</button>
+        </form>
+    </div>
 </body>
 </html>

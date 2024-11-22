@@ -1,11 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* Light blue */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .result-container {
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #0047ab; /* Dark blue */
+        }
+        p {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #0047ab;
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #003580;
+        }
+    </style>
 </head>
 <body>
-    <h1>Predicted House Price</h1>
-    <p>The estimated price of the house is: ${{ predicted_price }}</p>
-    <a href="/">Back to Prediction Form</a>
+    <div class="result-container">
+        <h1>House Price Prediction Result</h1>
+        <p>The predicted house price is: ₹{{ predicted_price }}</p>
+        <a href="{% url 'property_form' %}">
+            <button>Try Another Prediction</button>
+        </a>
+    </div>
 </body>
 </html>
